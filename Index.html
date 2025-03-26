@@ -1,62 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZAXX v1 - Zachary's Mind Wall</title>
-    <style>
-        body {
-            background-color: #222;
-            font-family: Arial, sans-serif;
-            color: #fff;
-            margin: 0;
-            padding: 20px;
-            overflow: hidden;
+<script>
+    let selectedNode = null, offsetX = 0, offsetY = 0;
+
+    function onPointerDown(e) {
+        selectedNode = e.target;
+        if (e.type === 'mousedown') {
+            offsetX = e.clientX - selectedNode.offsetLeft;
+            offsetY = e.clientY - selectedNode.offsetTop;
+        } else if (e.type === 'touchstart') {
+            offsetX = e.touches[0].clientX - selectedNode.offsetLeft;
+            offsetY = e.touches[0].clientY - selectedNode.offsetTop;
         }
-        .node {
-            width: 200px;
-            padding: 15px;
-            background-color: #333;
-            border-radius: 5px;
-            position: absolute;
-            cursor: move;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.6);
-        }
-        .red { border-left: 5px solid #e74c3c; }
-        .blue { border-left: 5px solid #3498db; }
-        .black { border-left: 5px solid #000; }
-        .green { border-left: 5px solid #2ecc71; }
-        .white { border-left: 5px solid #ecf0f1; color: #333; background-color: #f5f5f5; }
-    </style>
-</head>
-<body>
-    <div class="node red" style="top:50px; left:100px;">Business Idea</div>
-    <div class="node blue" style="top:150px; left:350px;">Creative Scene</div>
-    <div class="node black" style="top:300px; left:200px;">Philosophy Note</div>
-    <div class="node green" style="top:400px; left:500px;">Growth Task</div>
-    <div class="node white" style="top:200px; left:650px;">Open Question</div>
+    }
 
-    <script>
-        let selectedNode = null, offsetX = 0, offsetY = 0;
+    function onPointerMove(e) {
+        if (!selectedNode) return;
+        e.preventDefault();
+        let x = (e.type === 'mousemove') ? e.clientX : e.touches[0].clientX;
+        let y = (e.type === 'mousemove') ? e.clientY : e.touches[0].clientY;
+        selectedNode.style.left = (x - offsetX) + 'px';
+        selectedNode.style.top = (y - offsetY) + 'px';
+    }
 
-        document.querySelectorAll('.node').forEach(node => {
-            node.addEventListener('mousedown', (e) => {
-                selectedNode = e.target;
-                offsetX = e.clientX - selectedNode.offsetLeft;
-                offsetY = e.clientY - selectedNode.offsetTop;
-            });
-        });
+    function onPointerUp() {
+        selectedNode = null;
+    }
 
-        document.addEventListener('mousemove', (e) => {
-            if (selectedNode) {
-                selectedNode.style.left = (e.clientX - offsetX) + 'px';
-                selectedNode.style.top = (e.clientY - offsetY) + 'px';
-            }
-        });
+    document.querySelectorAll('.node').forEach(node => {
+        node.addEventListener('mousedown', onPointerDown);
+        node.addEventListener('touchstart', onPointerDown);
+    });
 
-        document.addEventListener('mouseup', () => {
-            selectedNode = null;
-        });
-    </script>
-</body>
-</html>
+    document.addEventListener('mousemove', onPointerMove);
+    document.addEventListener('touchmove', onPointerMove, { passive: false });
+    document.addEventListener('mouseup', onPointerUp);
+    document.addEventListener('touchend', onPointerUp);
+</script>
