@@ -1,24 +1,25 @@
 <script>
-    let selectedNode = null, offsetX = 0, offsetY = 0;
+    let selectedNode = null;
+    let offsetX = 0;
+    let offsetY = 0;
+
+    function getPointerEvent(e) {
+        return e.touches ? e.touches[0] : e;
+    }
 
     function onPointerDown(e) {
+        const pointer = getPointerEvent(e);
         selectedNode = e.target;
-        if (e.type === 'mousedown') {
-            offsetX = e.clientX - selectedNode.offsetLeft;
-            offsetY = e.clientY - selectedNode.offsetTop;
-        } else if (e.type === 'touchstart') {
-            offsetX = e.touches[0].clientX - selectedNode.offsetLeft;
-            offsetY = e.touches[0].clientY - selectedNode.offsetTop;
-        }
+        offsetX = pointer.clientX - selectedNode.offsetLeft;
+        offsetY = pointer.clientY - selectedNode.offsetTop;
     }
 
     function onPointerMove(e) {
         if (!selectedNode) return;
         e.preventDefault();
-        let x = (e.type === 'mousemove') ? e.clientX : e.touches[0].clientX;
-        let y = (e.type === 'mousemove') ? e.clientY : e.touches[0].clientY;
-        selectedNode.style.left = (x - offsetX) + 'px';
-        selectedNode.style.top = (y - offsetY) + 'px';
+        const pointer = getPointerEvent(e);
+        selectedNode.style.left = (pointer.clientX - offsetX) + 'px';
+        selectedNode.style.top = (pointer.clientY - offsetY) + 'px';
     }
 
     function onPointerUp() {
@@ -27,7 +28,7 @@
 
     document.querySelectorAll('.node').forEach(node => {
         node.addEventListener('mousedown', onPointerDown);
-        node.addEventListener('touchstart', onPointerDown);
+        node.addEventListener('touchstart', onPointerDown, { passive: false });
     });
 
     document.addEventListener('mousemove', onPointerMove);
