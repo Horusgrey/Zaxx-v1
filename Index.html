@@ -1,38 +1,74 @@
-<script>
-    let selectedNode = null;
-    let offsetX = 0;
-    let offsetY = 0;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZAXX v1 – Zachary’s Mind Wall</title>
+  <style>
+    body {
+      background-color: #222;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    .node {
+      width: 180px;
+      padding: 15px;
+      position: absolute;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      cursor: grab;
+      user-select: none;
+    }
+    .red { background: #c0392b; color: #fff; left: 20px; top: 20px; }
+    .blue { background: #2980b9; color: #fff; left: 220px; top: 100px; }
+    .black { background: #111; color: #fff; left: 420px; top: 200px; }
+    .green { background: #27ae60; color: #fff; left: 100px; top: 300px; }
+    .white { background: #ecf0f1; color: #222; left: 300px; top: 400px; }
+  </style>
+</head>
+<body>
 
-    function getPointerEvent(e) {
-        return e.touches ? e.touches[0] : e;
+  <div class="node red">Business Idea</div>
+  <div class="node blue">Creative Scene</div>
+  <div class="node black">Philosophy Note</div>
+  <div class="node green">Growth Task</div>
+  <div class="node white">Open Question</div>
+
+  <script>
+    let selected = null;
+    let offsetX, offsetY;
+
+    function pointerDown(e) {
+      selected = e.target;
+      const point = e.touches ? e.touches[0] : e;
+      offsetX = point.clientX - selected.offsetLeft;
+      offsetY = point.clientY - selected.offsetTop;
     }
 
-    function onPointerDown(e) {
-        const pointer = getPointerEvent(e);
-        selectedNode = e.target;
-        offsetX = pointer.clientX - selectedNode.offsetLeft;
-        offsetY = pointer.clientY - selectedNode.offsetTop;
+    function pointerMove(e) {
+      if (!selected) return;
+      e.preventDefault();
+      const point = e.touches ? e.touches[0] : e;
+      selected.style.left = (point.clientX - offsetX) + 'px';
+      selected.style.top = (point.clientY - offsetY) + 'px';
     }
 
-    function onPointerMove(e) {
-        if (!selectedNode) return;
-        e.preventDefault();
-        const pointer = getPointerEvent(e);
-        selectedNode.style.left = (pointer.clientX - offsetX) + 'px';
-        selectedNode.style.top = (pointer.clientY - offsetY) + 'px';
+    function pointerUp() {
+      selected = null;
     }
 
-    function onPointerUp() {
-        selectedNode = null;
-    }
-
-    document.querySelectorAll('.node').forEach(node => {
-        node.addEventListener('mousedown', onPointerDown);
-        node.addEventListener('touchstart', onPointerDown, { passive: false });
+    document.querySelectorAll('.node').forEach(el => {
+      el.addEventListener('mousedown', pointerDown);
+      el.addEventListener('touchstart', pointerDown, { passive: false });
     });
 
-    document.addEventListener('mousemove', onPointerMove);
-    document.addEventListener('touchmove', onPointerMove, { passive: false });
-    document.addEventListener('mouseup', onPointerUp);
-    document.addEventListener('touchend', onPointerUp);
-</script>
+    document.addEventListener('mousemove', pointerMove);
+    document.addEventListener('touchmove', pointerMove, { passive: false });
+    document.addEventListener('mouseup', pointerUp);
+    document.addEventListener('touchend', pointerUp);
+  </script>
+
+</body>
+</html>
