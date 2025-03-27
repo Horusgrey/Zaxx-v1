@@ -1,44 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ZAXX v1 – Zachary’s Mind Wall</title>
-  <style>
-    body {
-      background-color: #222;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
-    .node {
-      width: 180px;
-      padding: 15px;
-      position: absolute;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
-      cursor: grab;
+cursor: grab;
       user-select: none;
     }
-    .red { background: #c0392b; color: #fff; left: 20px; top: 20px; }
-    .blue { background: #2980b9; color: #fff; left: 220px; top: 100px; }
-    .black { background: #111; color: #fff; left: 420px; top: 200px; }
-    .green { background: #27ae60; color: #fff; left: 100px; top: 300px; }
-    .white { background: #ecf0f1; color: #222; left: 300px; top: 400px; }
+    .red { background: #c0392b; color: #fff; }
+    .blue { background: #2980b9; color: #fff; }
+    .black { background: #111; color: #fff; }
+    .green { background: #27ae60; color: #fff; }
+    .white { background: #ecf0f1; color: #222; }
   </style>
 </head>
 <body>
 
-  <div class="node red">Business Idea</div>
-  <div class="node blue">Creative Scene</div>
-  <div class="node black">Philosophy Note</div>
-  <div class="node green">Growth Task</div>
-  <div class="node white">Open Question</div>
+  <div id="controls">
+    <input id="nodeText" placeholder="New idea..." />
+    <select id="nodeColor">
+      <option value="red">Business</option>
+      <option value="blue">Creative</option>
+      <option value="black">Philosophy</option>
+      <option value="green">Growth</option>
+      <option value="white">Question</option>
+    </select>
+    <button onclick="createNode()">Add</button>
+  </div>
 
   <script>
     let selected = null;
     let offsetX, offsetY;
+
+    function createNode() {
+      const text = document.getElementById('nodeText').value;
+      const color = document.getElementById('nodeColor').value;
+      if (!text) return;
+
+      const node = document.createElement('div');
+      node.className = `node ${color}`;
+      node.textContent = text;
+      node.style.left = Math.random() * 300 + 50 + 'px';
+      node.style.top = Math.random() * 400 + 100 + 'px';
+
+      addDragEvents(node);
+      document.body.appendChild(node);
+
+      document.getElementById('nodeText').value = '';
+    }
+
+    function addDragEvents(el) {
+      el.addEventListener('mousedown', pointerDown);
+      el.addEventListener('touchstart', pointerDown, { passive: false });
+    }
 
     function pointerDown(e) {
       selected = e.target;
@@ -58,11 +66,6 @@
     function pointerUp() {
       selected = null;
     }
-
-    document.querySelectorAll('.node').forEach(el => {
-      el.addEventListener('mousedown', pointerDown);
-      el.addEventListener('touchstart', pointerDown, { passive: false });
-    });
 
     document.addEventListener('mousemove', pointerMove);
     document.addEventListener('touchmove', pointerMove, { passive: false });
