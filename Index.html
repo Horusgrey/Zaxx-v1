@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ZAXX v1 – Zachary’s Mind Wall</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ZAXX v1.6 – Mobile Menu Edition</title>
   <style>
     body {
       background-color: #222;
@@ -18,6 +17,17 @@
       left: 10px;
       z-index: 1000;
     }
+    #truthBell {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      padding: 10px;
+      background: gold;
+      color: black;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
     input, select, button {
       margin: 4px;
       padding: 6px;
@@ -27,12 +37,45 @@
     }
     .node {
       width: 180px;
-      padding: 15px;
+      padding: 15px 10px 10px;
       position: absolute;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.4);
       cursor: grab;
       user-select: none;
+    }
+    .menu-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .menu-popup {
+      position: absolute;
+      top: 30px;
+      right: 5px;
+      background: #444;
+      border-radius: 5px;
+      padding: 5px;
+      z-index: 1000;
+      display: none;
+    }
+    .menu-popup button {
+      display: block;
+      width: 100%;
+      background: none;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .menu-popup button:hover {
+      background: #555;
     }
     .red { background: #c0392b; color: #fff; }
     .blue { background: #2980b9; color: #fff; }
@@ -42,9 +85,8 @@
   </style>
 </head>
 <body>
-
   <div id="controls">
-    <input id="nodeText" type="text" placeholder="New idea..." />
+    <input id="nodeText" placeholder="New idea..." />
     <select id="nodeColor">
       <option value="red">Business</option>
       <option value="blue">Creative</option>
@@ -53,39 +95,89 @@
       <option value="white">Question</option>
     </select>
     <button onclick="addNode()">+ Add</button>
-  </div>
-
-  <!-- Default starting nodes -->
-  <div class="node red" style="left: 20px; top: 80px;">Business Idea</div>
-  <div class="node blue" style="left: 220px; top: 160px;">Creative Scene</div>
-  <div class="node black" style="left: 420px; top: 240px;">Philosophy Note</div>
-  <div class="node green" style="left: 100px; top: 300px;">Growth Task</div>
-  <div class="node white" style="left: 300px; top: 400px;">Open Question</div>
+  </div><button id="truthBell" onclick="ringTruthBell()">Truth Bell</button>
 
   <script>
-    let selected = null;
-    let offsetX, offsetY;
+    let selected = null, offsetX, offsetY;
+    const colors = ['red', 'blue', 'black', 'green', 'white'];
 
-    function addNode() {
-      const text = document.getElementById("nodeText").value.trim();
-      const color = document.getElementById("nodeColor").value;
-      if (!text) return;
+    function addNode(text = null, color = null, left = null, top = null) {
+      const inputText = document.getElementById("nodeText").value.trim();
+      const selectedColor = document.getElementById("nodeColor").value;
+      const content = text || inputText;
+      const category = color || selectedColor;
+      if (!content) return;
 
       const div = document.createElement("div");
-      div.className = `node ${color}`;
-      div.style.left = "150px";
-      div.style.top = "150px";
-      div.textContent = text;
+      div.className = `node ${category}`;
+      div.style.left = left || (Math.random() * 300 + 50 + 'px');
+      div.style.top = top || (Math.random() * 400 + 100 + 'px');
+
+      const menuBtn = document.createElement("button");
+      menuBtn.className = "menu-btn";
+      menuBtn.innerHTML = "⋮";
+      menuBtn.onclick = (e) => {
+        e.stopPropagation();
+        toggleMenu(div);
+      };
+
+      const menuPopup = document.createElement("div");
+      menuPopup.className = "menu-popup";
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Edit Text";
+      editBtn.onclick = () => { editNode(div); menuPopup.style.display = 'none'; };
+      const colorBtn = document.createElement("button");
+      colorBtn.textContent = "Change Color";
+      colorBtn.onclick = () => { changeColor(div); menuPopup.style.display = 'none'; };
+
+      menuPopup.appendChild(editBtn);
+      menuPopup.appendChild(colorBtn);
+
+      div.appendChild(menuBtn);
+      div.appendChild(menuPopup);
+      div.appendChild(document.createTextNode(content));
 
       div.addEventListener('mousedown', pointerDown);
       div.addEventListener('touchstart', pointerDown, { passive: false });
-      document.body.appendChild(div);
 
+      document.body.appendChild(div);
       document.getElementById("nodeText").value = "";
+      saveNodes();
+    }
+
+    function toggleMenu(node) {
+      const menu = node.querySelector(".menu-popup");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    }
+
+    function editNode(node) {
+      const currentText = node.childNodes[node.childNodes.length - 1].textContent;
+      const input = document.createElement("input");
+      input.value = currentText;
+      input.style.width = "100%";
+      node.replaceChild(input, node.childNodes[node.childNodes.length - 1]);
+      input.focus();
+      input.onblur = () => {
+        const newText = document.createTextNode(input.value);
+        node.replaceChild(newText, input);
+        saveNodes();
+      };
+      input.onkeydown = (e) => {
+        if (e.key === "Enter") input.blur();
+      };
+    }
+
+    function changeColor(node) {
+      const current = node.classList[1];
+      let next = colors[(colors.indexOf(current) + 1) % colors.length];
+      node.classList.remove(current);
+      node.classList.add(next);
+      saveNodes();
     }
 
     function pointerDown(e) {
-      selected = e.target;
+      if (e.target.className.includes('menu')) return;
+      selected = e.target.closest('.node');
       const point = e.touches ? e.touches[0] : e;
       offsetX = point.clientX - selected.offsetLeft;
       offsetY = point.clientY - selected.offsetTop;
@@ -97,22 +189,44 @@
       const point = e.touches ? e.touches[0] : e;
       selected.style.left = (point.clientX - offsetX) + 'px';
       selected.style.top = (point.clientY - offsetY) + 'px';
+      saveNodes();
     }
 
-    function pointerUp() {
-      selected = null;
+    function pointerUp() { selected = null; }
+
+    function ringTruthBell() {
+      const nodes = document.querySelectorAll('.node');
+      if (!nodes.length) return;
+      const rand = nodes[Math.floor(Math.random() * nodes.length)];
+      alert(`TRUTH BELL:\n\n"${rand.textContent}"\n\nWhy haven’t you acted on this yet?`);
     }
 
-    document.querySelectorAll('.node').forEach(el => {
-      el.addEventListener('mousedown', pointerDown);
-      el.addEventListener('touchstart', pointerDown, { passive: false });
-    });
+    function saveNodes() {
+      const nodes = Array.from(document.querySelectorAll('.node')).map(n => ({
+        text: n.childNodes[n.childNodes.length - 1].textContent,
+        color: n.classList[1],
+        left: n.style.left,
+        top: n.style.top
+      }));
+      localStorage.setItem('zaxx_nodes', JSON.stringify(nodes));
+    }
+
+    function loadNodes() {
+      const data = localStorage.getItem('zaxx_nodes');
+      if (!data) return;
+      JSON.parse(data).forEach(n => {
+        addNode(n.text, n.color, n.left, n.top);
+      });
+    }
 
     document.addEventListener('mousemove', pointerMove);
     document.addEventListener('touchmove', pointerMove, { passive: false });
     document.addEventListener('mouseup', pointerUp);
     document.addEventListener('touchend', pointerUp);
-  </script>
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.menu-popup').forEach(menu => menu.style.display = 'none');
+    });
 
-</body>
+    loadNodes();
+  </script></body>
 </html>
