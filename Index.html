@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZAXX v1.6 – Mobile Menu Edition</title>
+  <title>ZAXX v1.8 – Voice Activated</title>
   <style>
     body {
       background-color: #222;
@@ -37,7 +37,7 @@
     }
     .node {
       width: 180px;
-      padding: 15px 10px 10px;
+      padding: 15px 10px 35px;
       position: absolute;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.4);
@@ -77,14 +77,46 @@
     .menu-popup button:hover {
       background: #555;
     }
+    .category-label {
+      font-size: 11px;
+      font-weight: bold;
+      position: absolute;
+      top: 5px;
+      left: 8px;
+      opacity: 0.7;
+    }
+    .mic-btn {
+      position: absolute;
+      bottom: 5px;
+      left: 8px;
+      font-size: 16px;
+      background: none;
+      border: none;
+      color: white;
+      opacity: 0.8;
+      cursor: pointer;
+    }
+    audio {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      width: 100px;
+    }
     .red { background: #c0392b; color: #fff; }
     .blue { background: #2980b9; color: #fff; }
     .black { background: #111; color: #fff; }
     .green { background: #27ae60; color: #fff; }
     .white { background: #ecf0f1; color: #222; }
+    svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
   </style>
 </head>
 <body>
+  <svg id="svgCanvas" width="100%" height="100%"></svg>
   <div id="controls">
     <input id="nodeText" placeholder="New idea..." />
     <select id="nodeColor">
@@ -95,11 +127,15 @@
       <option value="white">Question</option>
     </select>
     <button onclick="addNode()">+ Add</button>
-  </div><button id="truthBell" onclick="ringTruthBell()">Truth Bell</button>
-
-  <script>
+  </div>
+  <button id="truthBell" onclick="ringTruthBell()">Truth Bell</button>  <script>
     let selected = null, offsetX, offsetY;
     const colors = ['red', 'blue', 'black', 'green', 'white'];
+    const colorLabels = {
+      red: 'Business', blue: 'Creative', black: 'Philosophy', green: 'Growth', white: 'Question'
+    };
+    let linkStart = null;
+    const links = [];
 
     function addNode(text = null, color = null, left = null, top = null) {
       const inputText = document.getElementById("nodeText").value.trim();
@@ -112,6 +148,10 @@
       div.className = `node ${category}`;
       div.style.left = left || (Math.random() * 300 + 50 + 'px');
       div.style.top = top || (Math.random() * 400 + 100 + 'px');
+
+      const label = document.createElement("div");
+      label.className = "category-label";
+      label.textContent = colorLabels[category];
 
       const menuBtn = document.createElement("button");
       menuBtn.className = "menu-btn";
@@ -128,17 +168,64 @@
       editBtn.onclick = () => { editNode(div); menuPopup.style.display = 'none'; };
       const colorBtn = document.createElement("button");
       colorBtn.textContent = "Change Color";
-      colorBtn.onclick = () => { changeColor(div); menuPopup.style.display = 'none'; };
+      colorBtn.onclick = () => { changeColor(div, label); menuPopup.style.display = 'none'; };
 
       menuPopup.appendChild(editBtn);
       menuPopup.appendChild(colorBtn);
 
+      const micBtn = document.createElement("button");
+      micBtn.className = "mic-btn";
+      micBtn.textContent = "🎤";
+
+      let mediaRecorder;
+      let chunks = [];
+      micBtn.onclick = async () => {
+        if (!mediaRecorder || mediaRecorder.state === "inactive") {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = e => chunks.push(e.data);
+            mediaRecorder.onstop = () => {
+              const blob = new Blob(chunks, { type: 'audio/ogg; codecs=opus' });
+              const url = URL.createObjectURL(blob);
+              const audio = document.createElement('audio');
+              audio.controls = true;
+              audio.src = url;
+              div.appendChild(audio);
+              chunks = [];
+            };
+            mediaRecorder.start();
+            micBtn.textContent = "⏹️";
+          } catch (err) {
+            alert("Mic access denied or unavailable.");
+          }
+        } else if (mediaRecorder.state === "recording") {
+          mediaRecorder.stop();
+          micBtn.textContent = "🎤";
+        }
+      };
+
+      const textNode = document.createTextNode(content);
+
+      div.appendChild(label);
       div.appendChild(menuBtn);
       div.appendChild(menuPopup);
-      div.appendChild(document.createTextNode(content));
+      div.appendChild(textNode);
+      div.appendChild(micBtn);
 
       div.addEventListener('mousedown', pointerDown);
       div.addEventListener('touchstart', pointerDown, { passive: false });
+      div.ondblclick = () => {
+        if (!linkStart) {
+          linkStart = div;
+          div.style.outline = '2px dashed yellow';
+        } else {
+          links.push([linkStart, div]);
+          linkStart.style.outline = '';
+          linkStart = null;
+          drawLinks();
+        }
+      };
 
       document.body.appendChild(div);
       document.getElementById("nodeText").value = "";
@@ -151,11 +238,11 @@
     }
 
     function editNode(node) {
-      const currentText = node.childNodes[node.childNodes.length - 1].textContent;
+      const currentText = node.childNodes[node.childNodes.length - 2].textContent;
       const input = document.createElement("input");
       input.value = currentText;
       input.style.width = "100%";
-      node.replaceChild(input, node.childNodes[node.childNodes.length - 1]);
+      node.replaceChild(input, node.childNodes[node.childNodes.length - 2]);
       input.focus();
       input.onblur = () => {
         const newText = document.createTextNode(input.value);
@@ -167,16 +254,17 @@
       };
     }
 
-    function changeColor(node) {
+    function changeColor(node, label) {
       const current = node.classList[1];
       let next = colors[(colors.indexOf(current) + 1) % colors.length];
       node.classList.remove(current);
       node.classList.add(next);
+      label.textContent = colorLabels[next];
       saveNodes();
     }
 
     function pointerDown(e) {
-      if (e.target.className.includes('menu')) return;
+      if (e.target.className.includes('menu') || e.target.className.includes('mic')) return;
       selected = e.target.closest('.node');
       const point = e.touches ? e.touches[0] : e;
       offsetX = point.clientX - selected.offsetLeft;
@@ -189,6 +277,7 @@
       const point = e.touches ? e.touches[0] : e;
       selected.style.left = (point.clientX - offsetX) + 'px';
       selected.style.top = (point.clientY - offsetY) + 'px';
+      drawLinks();
       saveNodes();
     }
 
@@ -198,12 +287,28 @@
       const nodes = document.querySelectorAll('.node');
       if (!nodes.length) return;
       const rand = nodes[Math.floor(Math.random() * nodes.length)];
-      alert(`TRUTH BELL:\n\n"${rand.textContent}"\n\nWhy haven’t you acted on this yet?`);
+      const text = rand.childNodes[rand.childNodes.length - 2].textContent;
+      alert(`TRUTH BELL:\n\n"${text}"\n\nWhy haven’t you acted on this yet?`);
+    }
+
+    function drawLinks() {
+      const svg = document.getElementById('svgCanvas');
+      svg.innerHTML = '';
+      links.forEach(([a, b]) => {
+        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+        line.setAttribute('x1', a.offsetLeft + 90);
+        line.setAttribute('y1', a.offsetTop + 20);
+        line.setAttribute('x2', b.offsetLeft + 90);
+        line.setAttribute('y2', b.offsetTop + 20);
+        line.setAttribute('stroke', 'red');
+        line.setAttribute('stroke-width', '2');
+        svg.appendChild(line);
+      });
     }
 
     function saveNodes() {
       const nodes = Array.from(document.querySelectorAll('.node')).map(n => ({
-        text: n.childNodes[n.childNodes.length - 1].textContent,
+        text: n.childNodes[n.childNodes.length - 2].textContent,
         color: n.classList[1],
         left: n.style.left,
         top: n.style.top
