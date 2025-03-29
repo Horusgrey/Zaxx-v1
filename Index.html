@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZAXX v1.8 – Voice Activated</title>
+  <title>ZAXX v1.9 – Threaded Thought</title>
   <style>
     body {
       background-color: #222;
@@ -10,6 +10,7 @@
       padding: 20px;
       font-family: Arial, sans-serif;
       color: white;
+      overflow: hidden;
     }
     #controls {
       position: fixed;
@@ -19,14 +20,16 @@
     }
     #truthBell {
       position: fixed;
-      top: 10px;
+      bottom: 10px;
       right: 10px;
-      padding: 10px;
+      padding: 10px 16px;
       background: gold;
       color: black;
       border: none;
-      border-radius: 5px;
+      border-radius: 8px;
       cursor: pointer;
+      z-index: 1000;
+      font-weight: bold;
     }
     input, select, button {
       margin: 4px;
@@ -37,7 +40,7 @@
     }
     .node {
       width: 180px;
-      padding: 15px 10px 35px;
+      padding: 15px 10px 40px;
       position: absolute;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.4);
@@ -128,7 +131,7 @@
     </select>
     <button onclick="addNode()">+ Add</button>
   </div>
-  <button id="truthBell" onclick="ringTruthBell()">Truth Bell</button>  <script>
+  <button id="truthBell" onclick="ringTruthBell()">Bell</button>  <script>
     let selected = null, offsetX, offsetY;
     const colors = ['red', 'blue', 'black', 'green', 'white'];
     const colorLabels = {
@@ -229,6 +232,7 @@
 
       document.body.appendChild(div);
       document.getElementById("nodeText").value = "";
+      div.scrollIntoView({ behavior: "smooth", block: "center" });
       saveNodes();
     }
 
