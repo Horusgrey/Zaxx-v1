@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ZAXX v1.9 – Threaded Thought</title>
+  <title>ZAXX v2.0 – Whisper Alpha</title>
   <style>
     body {
       background-color: #222;
@@ -39,8 +39,8 @@
       font-size: 14px;
     }
     .node {
-      width: 180px;
-      padding: 15px 10px 40px;
+      width: 200px;
+      padding: 15px 10px 50px;
       position: absolute;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.4);
@@ -98,6 +98,12 @@
       color: white;
       opacity: 0.8;
       cursor: pointer;
+    }
+    .transcription {
+      font-size: 12px;
+      color: #ddd;
+      margin-top: 8px;
+      white-space: pre-wrap;
     }
     audio {
       position: absolute;
@@ -180,8 +186,13 @@
       micBtn.className = "mic-btn";
       micBtn.textContent = "🎤";
 
+      const transcription = document.createElement("div");
+      transcription.className = "transcription";
+
       let mediaRecorder;
       let chunks = [];
+      let recognition;
+
       micBtn.onclick = async () => {
         if (!mediaRecorder || mediaRecorder.state === "inactive") {
           try {
@@ -199,12 +210,30 @@
             };
             mediaRecorder.start();
             micBtn.textContent = "⏹️";
+
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+              const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+              recognition = new SpeechRecognition();
+              recognition.continuous = true;
+              recognition.interimResults = true;
+              recognition.lang = 'en-US';
+              recognition.onresult = (event) => {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                  finalTranscript += event.results[i][0].transcript;
+                }
+                transcription.textContent = finalTranscript;
+              };
+              recognition.start();
+            }
+
           } catch (err) {
             alert("Mic access denied or unavailable.");
           }
         } else if (mediaRecorder.state === "recording") {
           mediaRecorder.stop();
           micBtn.textContent = "🎤";
+          if (recognition) recognition.stop();
         }
       };
 
@@ -214,6 +243,7 @@
       div.appendChild(menuBtn);
       div.appendChild(menuPopup);
       div.appendChild(textNode);
+      div.appendChild(transcription);
       div.appendChild(micBtn);
 
       div.addEventListener('mousedown', pointerDown);
@@ -242,11 +272,11 @@
     }
 
     function editNode(node) {
-      const currentText = node.childNodes[node.childNodes.length - 2].textContent;
+      const currentText = node.childNodes[3].textContent;
       const input = document.createElement("input");
       input.value = currentText;
       input.style.width = "100%";
-      node.replaceChild(input, node.childNodes[node.childNodes.length - 2]);
+      node.replaceChild(input, node.childNodes[3]);
       input.focus();
       input.onblur = () => {
         const newText = document.createTextNode(input.value);
@@ -291,7 +321,7 @@
       const nodes = document.querySelectorAll('.node');
       if (!nodes.length) return;
       const rand = nodes[Math.floor(Math.random() * nodes.length)];
-      const text = rand.childNodes[rand.childNodes.length - 2].textContent;
+      const text = rand.childNodes[3].textContent;
       alert(`TRUTH BELL:\n\n"${text}"\n\nWhy haven’t you acted on this yet?`);
     }
 
@@ -312,7 +342,7 @@
 
     function saveNodes() {
       const nodes = Array.from(document.querySelectorAll('.node')).map(n => ({
-        text: n.childNodes[n.childNodes.length - 2].textContent,
+        text: n.childNodes[3].textContent,
         color: n.classList[1],
         left: n.style.left,
         top: n.style.top
