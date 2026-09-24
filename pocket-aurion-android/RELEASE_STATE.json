@@ -1,0 +1,12 @@
+{
+  "project": "PRJ-AURION-LLM-81026",
+  "artifact": "Pocket Aurion Android",
+  "version": "0.1.0",
+  "date": "2026-09-22",
+  "status": "SOURCE_READY_DEVICE_UNVERIFIED",
+  "runtime_strategy": "llama.cpp Android binding first; runtime interface preserved for future ExecuTorch/QNN benchmark",
+  "llama_cpp_pin": "f46bc30cb6a7f68a67e34a00061e20a4ad1eff43",
+  "android": {"compileSdk": 36, "targetSdk": 36, "minSdk": 33},
+  "security": {"internet_permission": false, "cloud_fallback": false},
+  "next_gate": "Compile APK, install on S25 Ultra, acquire Assistant role, load benchmark GGUF, run device evals"
+}

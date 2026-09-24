@@ -1,0 +1,19 @@
+Open this PocketAurion Android source tree. Before changing anything, read README.md, RELEASE_STATE.json, docs/CLAUDE_CODE_HANDOFF.md, docs/BUILD_AND_INSTALL.md, docs/SECURITY.md, docs/DEVICE_ACCEPTANCE_CHECKLIST.md, and docs/S25_RUNTIME_ROADMAP.md in full.
+
+Treat the existing Aurion architecture and security boundaries as canonical. Do not redesign the product, rename subsystems, add cloud inference, or broaden Android permissions to make the build easier.
+
+Your immediate engineering objective is Milestone A:
+1. establish JDK 17 + Android SDK/NDK/CMake prerequisites;
+2. run python scripts/static_verify.py and require all checks to pass;
+3. run the pinned llama.cpp bootstrap without replacing Pocket Aurion's version catalog;
+4. generate/use Gradle 8.13 wrapper;
+5. run local JVM tests;
+6. build the shell debug APK first and inspect its manifest for INTERNET permission;
+7. build the full llama.cpp debug APK with -PwithLlama=true;
+8. fix only concrete compile/link/runtime defects, preserving architecture and local-only boundaries;
+9. install on the connected Samsung Galaxy S25 Ultra with ADB when available;
+10. execute docs/DEVICE_ACCEPTANCE_CHECKLIST.md through the Assistant-role and Side-button gates before doing performance optimization.
+
+Start with the pinned CPU llama.cpp Android path. Do not enable OpenCL, Vulkan, QNN, or another runtime until the CPU baseline proves the complete assistant flow. Once Milestone A works, benchmark OpenCL separately because current upstream llama.cpp documents Snapdragon 8 Elite / Adreno 830 support.
+
+Keep a concise CHANGELOG of every code change, why it was necessary, command/test evidence, and anything still unverified. If a step requires me physically interacting with the S25 Ultra, stop at that exact step and give me precise UI/ADB instructions rather than guessing.

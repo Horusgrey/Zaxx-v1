@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="18dp"
+    android:background="@color/aurion_surface">
+
+    <TextView
+        android:id="@+id/sessionTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Aurion"
+        android:textColor="@color/aurion_text"
+        android:textStyle="bold"
+        android:textSize="22sp" />
+
+    <TextView
+        android:id="@+id/sessionContext"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="@color/aurion_muted"
+        android:maxLines="2" />
+
+    <TextView
+        android:id="@+id/sessionResponse"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textColor="@color/aurion_text"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/sessionInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:hint="Ask Aurion…"
+        android:textColor="@color/aurion_text"
+        android:textColorHint="@color/aurion_muted" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/sessionMic"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Speak" />
+        <Button
+            android:id="@+id/sessionSend"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Send" />
+    </LinearLayout>
+</LinearLayout>

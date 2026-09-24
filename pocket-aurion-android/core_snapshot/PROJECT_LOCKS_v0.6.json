@@ -1,0 +1,82 @@
+{
+  "version": "0.6.0",
+  "locks": [
+    {
+      "project_id": "PRJ-AURION-LLM-81026",
+      "lock_type": "architecture",
+      "name": "Model is replaceable compute",
+      "priority": 10,
+      "payload": {
+        "rule": "Identity, memory, canon, provenance, tools, approvals and evals must remain outside replaceable model weights."
+      },
+      "source_ref": "PRJ-AURION-LLM-81026"
+    },
+    {
+      "project_id": "PRJ-AURION-LLM-81026",
+      "lock_type": "security",
+      "name": "Offline means no hidden cloud fallback",
+      "priority": 10,
+      "payload": {
+        "rule": "Strict offline mode must fail closed when a required local service is unavailable. Never silently route to a cloud model."
+      },
+      "source_ref": "PRJ-AURION-LLM-81026"
+    },
+    {
+      "project_id": "PRJ-ZE3D-729A",
+      "lock_type": "architecture",
+      "name": "Standalone scope",
+      "priority": 10,
+      "payload": {
+        "rule": "Keep Z-Earth standalone. Do not speculate about or fold it into larger projects unless explicitly requested."
+      },
+      "source_ref": "Z-Earth user directive"
+    },
+    {
+      "project_id": "PRJ-ZE3D-729A",
+      "lock_type": "architecture",
+      "name": "Open local stack",
+      "priority": 20,
+      "payload": {
+        "rule": "Prefer current free open-source software and openly licensed data; avoid mandatory API keys, paid tokens and cloud runtime dependencies."
+      },
+      "source_ref": "Z-Earth user directive"
+    },
+    {
+      "project_id": "PRJ-SS-N7K4Q",
+      "lock_type": "visual",
+      "name": "Cinematic lens",
+      "priority": 10,
+      "payload": {
+        "lens": "70mm",
+        "look": "grounded cinematic",
+        "avoid": [
+          "cartoonish",
+          "photoshoot",
+          "neon"
+        ],
+        "framing": "Nolan / Vince Gilligan informed"
+      },
+      "source_ref": "Synedol visual canon"
+    },
+    {
+      "project_id": "PRJ-SS-N7K4Q",
+      "lock_type": "canon",
+      "name": "World vehicle rule",
+      "priority": 10,
+      "payload": {
+        "rule": "Vehicles in the active future action language are hover vehicles; do not substitute conventional old-world vehicles unless scene canon explicitly requires it."
+      },
+      "source_ref": "Synedol visual canon"
+    },
+    {
+      "project_id": "PRJ-SS-N7K4Q",
+      "lock_type": "canon",
+      "name": "Kozy identity",
+      "priority": 10,
+      "payload": {
+        "rule": "Kozy is human engineer / Dy's former best friend. Do not use sources that describe Kozy as sleepy or a droid."
+      },
+      "source_ref": "Synedol correction"
+    }
+  ]
+}

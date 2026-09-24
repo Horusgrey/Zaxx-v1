@@ -1,0 +1,8 @@
+{
+  "lineages": [
+    {"concept":"persistent identity","nodes":["Actor schema","Soul JSON","Soul Kernel","Dynamics Matrix","Aurion Soul/EGO"]},
+    {"concept":"continuity state","nodes":["EDNA locks","VCS handoff","Cineflow manifests","Project Capsules","Aurion context receipts"]},
+    {"concept":"direct creative annotation","nodes":["DONNA lyric contract","Hollywood canvas camera paths","screenplay/table-read production layer"]},
+    {"concept":"multi-agent adjudication","nodes":["Agentic Den","Soul Cards","LLM Council","Aurion Council Mode"]}
+  ]
+}

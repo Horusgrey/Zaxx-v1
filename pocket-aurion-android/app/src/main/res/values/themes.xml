@@ -1,0 +1,10 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.PocketAurion" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">@color/aurion_bg</item>
+        <item name="android:statusBarColor">@color/aurion_bg</item>
+        <item name="colorPrimary">@color/aurion_accent</item>
+        <item name="android:colorAccent">@color/aurion_accent</item>
+    </style>
+</resources>

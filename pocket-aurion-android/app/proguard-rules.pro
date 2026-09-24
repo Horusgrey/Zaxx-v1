@@ -1,0 +1,2 @@
+-keep class com.horusgrey.aurion.assistant.** { *; }
+-keep class com.horusgrey.aurion.runtime.** { *; }

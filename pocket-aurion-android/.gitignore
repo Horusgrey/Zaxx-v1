@@ -1,0 +1,11 @@
+# Fetched by scripts/bootstrap_llama.*; never committed.
+/vendor/
+.gradle/
+build/
+/local.properties
+*.apk
+*.aab
+*.gguf
+.idea/
+*.iml
+.DS_Store
