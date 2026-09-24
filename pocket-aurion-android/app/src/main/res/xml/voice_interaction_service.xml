@@ -3,5 +3,5 @@
     android:sessionService="com.horusgrey.aurion.assistant.AurionVoiceInteractionSessionService"
     android:recognitionService="com.horusgrey.aurion.voice.AurionRecognitionService"
     android:supportsAssist="true"
-    android:supportsLaunchVoiceAssistFromKeyguard="true"
+    android:supportsLaunchVoiceAssistFromKeyguard="false"
     android:supportsLocalInteraction="true" />

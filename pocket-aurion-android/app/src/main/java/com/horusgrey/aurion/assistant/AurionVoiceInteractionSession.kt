@@ -49,7 +49,20 @@ class AurionVoiceInteractionSession(context: Context) : VoiceInteractionSession(
 
     override fun onShow(args: Bundle?, showFlags: Int) {
         super.onShow(args, showFlags)
-        response.text = if (aurion.runtime.isModelLoaded) "Listening." else "Aurion is the assistant, but a local model has not been loaded yet."
+        if (aurion.runtime.isModelLoaded) {
+            response.text = "Listening."
+            return
+        }
+        response.text = "Loading local model…"
+        scope.launch {
+            response.text = runCatching { aurion.restoreSavedModel() }.fold(
+                onSuccess = {
+                    if (aurion.runtime.isModelLoaded) "Listening."
+                    else "Aurion is the assistant, but no local model has been imported yet. Open Aurion and tap Import GGUF."
+                },
+                onFailure = { "Local model failed to load: ${it.message}" }
+            )
+        }
     }
 
     override fun onHandleAssist(state: AssistState) {

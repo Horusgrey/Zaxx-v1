@@ -8,6 +8,11 @@
 - Git
 - USB debugging enabled on the S25 Ultra
 
+## 0. No-install option: GitHub Actions
+Every push that touches `pocket-aurion-android/` runs `.github/workflows/pocket-aurion-android.yml`, which performs steps 1–3 below,
+runs the unit tests, rejects any APK that requests `android.permission.INTERNET`, and uploads
+`pocket-aurion-shell-debug.apk` and `pocket-aurion-llama-debug.apk` as the `pocket-aurion-debug-apks` artifact.
+
 ## 1. Bootstrap llama.cpp
 Run `scripts/bootstrap_llama.sh` (macOS/Linux) or `scripts/bootstrap_llama.ps1` (Windows).
 
@@ -16,11 +21,17 @@ Pinned upstream commit:
 
 This was the current llama.cpp master commit observed on 2026-09-22. Pinning prevents an upstream update from silently changing the runtime between tests.
 
-## 2. Gradle wrapper
-If the archive does not contain a wrapper jar, open the project in Android Studio and let it sync, or from a machine with Gradle installed run:
-`gradle wrapper --gradle-version 8.13`
+The script never touches `gradle/libs.versions.toml`; Pocket Aurion's catalog already carries every alias the llama `:lib` module needs.
+Then run `python3 scripts/static_verify.py` — every check must pass.
 
-## 3. Build with native runtime
+## 2. Gradle wrapper
+The Gradle 8.13 wrapper is committed (`./gradlew`). Use JDK 17 (`JAVA_HOME`).
+
+## 3. Test, then build shell first, then native runtime
+`./gradlew :app:testDebugUnitTest`
+
+`./gradlew :app:assembleDebug` (StubRuntime shell; inspect with `aapt2 dump permissions` — no INTERNET)
+
 `./gradlew :app:assembleDebug -PwithLlama=true`
 
 ## 4. Install

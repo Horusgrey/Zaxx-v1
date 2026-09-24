@@ -56,6 +56,11 @@ android {
     packaging {
         resources.excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
+
+    testOptions {
+        // Robolectric tests read the protected Aurion kernel assets.
+        unitTests.isIncludeAndroidResources = true
+    }
 }
 
 dependencies {
@@ -68,4 +73,7 @@ dependencies {
     if (withLlama) {
         implementation(project(":llama"))
     }
+
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
 }

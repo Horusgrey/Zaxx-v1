@@ -22,6 +22,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.security.DigestInputStream
+import java.security.MessageDigest
 
 class MainActivity : AppCompatActivity() {
     private val scope = CoroutineScope(Dispatchers.Main + Job())
@@ -65,13 +67,10 @@ class MainActivity : AppCompatActivity() {
         append("DEVICE", DeviceReport.create(this).toString(2))
         refreshStatus()
 
-        aurion.db.getSetting("model_path")?.let { saved ->
-            val f = File(saved)
-            if (f.exists()) scope.launch {
-                runCatching { aurion.loadModel(f) }
-                    .onSuccess { append("SYSTEM", "Restored local model: ${f.name}"); refreshStatus() }
-                    .onFailure { append("ERROR", it.message ?: "Model restore failed") }
-            }
+        scope.launch {
+            runCatching { aurion.restoreSavedModel() }
+                .onSuccess { restored -> if (restored != null) { append("SYSTEM", "Restored local model: ${restored.name}"); refreshStatus() } }
+                .onFailure { append("ERROR", it.message ?: "Model restore failed") }
         }
     }
 
@@ -97,20 +96,34 @@ class MainActivity : AppCompatActivity() {
     private fun importModel(uri: Uri) {
         scope.launch {
             status.text = "Copying model into Aurion private storage…"
-            val copied = withContext(Dispatchers.IO) {
+            val copied = runCatching { withContext(Dispatchers.IO) {
                 val models = File(filesDir, "models").apply { mkdirs() }
                 val name = contentResolver.query(uri, arrayOf("_display_name"), null, null, null)?.use { c ->
                     if (c.moveToFirst()) c.getString(0) else null
                 } ?: "aurion-model.gguf"
                 require(name.lowercase().endsWith(".gguf")) { "Select a GGUF model file." }
                 val dest = File(models, name.replace(Regex("[^A-Za-z0-9._-]"), "_"))
+                // Copy to a temp file and rename, so re-importing the loaded model never rewrites a file llama.cpp has mapped.
+                val tmp = File(models, dest.name + ".part")
+                val digest = MessageDigest.getInstance("SHA-256")
                 contentResolver.openInputStream(uri)!!.use { input ->
-                    dest.outputStream().use { out -> input.copyTo(out, 1024 * 1024) }
+                    DigestInputStream(input, digest).use { hashed ->
+                        tmp.outputStream().use { out -> hashed.copyTo(out, 1024 * 1024) }
+                    }
                 }
-                dest
+                check(tmp.renameTo(dest)) { "Could not move imported model into place." }
+                val sha256 = digest.digest().joinToString("") { "%02x".format(it) }
+                aurion.db.putSetting("model_sha256:${dest.name}", sha256)
+                dest to sha256
+            } }.getOrElse {
+                append("ERROR", it.message ?: "Model import failed")
+                refreshStatus()
+                return@launch
             }
-            runCatching { aurion.loadModel(copied) }
-                .onSuccess { append("SYSTEM", "Model loaded: ${copied.name}") }
+            val (modelFile, sha256) = copied
+            append("SYSTEM", "Imported ${modelFile.name}\nSHA-256: $sha256")
+            runCatching { aurion.loadModel(modelFile) }
+                .onSuccess { append("SYSTEM", "Model loaded: ${modelFile.name}") }
                 .onFailure { append("ERROR", it.message ?: "Failed to load model") }
             refreshStatus()
         }

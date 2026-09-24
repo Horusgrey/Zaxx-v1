@@ -1,0 +1,82 @@
+name: Pocket Aurion Android
+
+on:
+  push:
+    paths:
+      - "pocket-aurion-android/**"
+      - ".github/workflows/pocket-aurion-android.yml"
+  pull_request:
+    paths:
+      - "pocket-aurion-android/**"
+      - ".github/workflows/pocket-aurion-android.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: pocket-aurion-android
+
+jobs:
+  milestone-a-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install Android SDK 36, NDK 29.0.13113456, CMake 3.31.6
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
+            "platforms;android-36" "build-tools;36.0.0" "ndk;29.0.13113456" "cmake;3.31.6" > /dev/null
+
+      - name: Bootstrap pinned llama.cpp
+        run: bash scripts/bootstrap_llama.sh
+
+      - name: Static verification
+        run: python3 scripts/static_verify.py
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Local JVM unit tests
+        run: ./gradlew --no-daemon :app:testDebugUnitTest
+
+      - name: Build shell debug APK (StubRuntime)
+        run: |
+          ./gradlew --no-daemon :app:assembleDebug
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/pocket-aurion-shell-debug.apk
+
+      - name: Build llama.cpp debug APK (CPU baseline)
+        run: |
+          ./gradlew --no-daemon :app:assembleDebug -PwithLlama=true
+          cp app/build/outputs/apk/debug/app-debug.apk dist/pocket-aurion-llama-debug.apk
+
+      - name: Inspect APKs (no INTERNET permission, native runtime present)
+        run: |
+          AAPT2="$ANDROID_HOME/build-tools/36.0.0/aapt2"
+          for apk in dist/*.apk; do
+            echo "== $apk"
+            "$AAPT2" dump permissions "$apk" | tee "$apk.permissions.txt"
+            if grep -q "android.permission.INTERNET" "$apk.permissions.txt"; then
+              echo "::error::$apk requests android.permission.INTERNET"; exit 1
+            fi
+          done
+          unzip -l dist/pocket-aurion-llama-debug.apk | grep -E "lib/arm64-v8a/.*\.so" | tee dist/llama-native-libs.txt
+          grep -q "lib/arm64-v8a/libai-chat.so" dist/llama-native-libs.txt
+          sha256sum dist/*.apk | tee dist/SHA256SUMS.txt
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pocket-aurion-debug-apks
+          path: |
+            pocket-aurion-android/dist/
+            pocket-aurion-android/app/build/reports/tests/
+          if-no-files-found: warn
