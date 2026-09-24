@@ -11,6 +11,17 @@ Status: **SOURCE_READY_DEVICE_UNVERIFIED** (unchanged). Nothing below has run on
 - Reachable: JDK 17 (Ubuntu archive), llama.cpp via git, Gradle distributions, Maven Central (rate-limited; `repo1.maven.org` works).
 - Workaround: `.github/workflows/pocket-aurion-android.yml` runs the full Milestone A build on GitHub-hosted runners (see below).
 
+### Milestone A build evidence (GitHub Actions run 35985099307, commit 32612df, JDK 17.0.20, Gradle 8.13)
+- `static_verify.py`: pass. `:app:testDebugUnitTest`: pass.
+- Shell APK (`:app:assembleDebug`) and llama APK (`-PwithLlama=true`, NDK 29.0.13113456, CMake 3.31.6): both build.
+- `aapt2 dump permissions`, both APKs: `RECORD_AUDIO`, `VIBRATE`, and AndroidX's app-private
+  `com.horusgrey.aurion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. **No `android.permission.INTERNET`.**
+- llama APK `lib/arm64-v8a/`: `libai-chat.so`, `libllama.so`, `libllama-common.so`, `libggml*.so`, `libomp.so`, and CPU variants
+  armv8.0, armv8.2 (×2), armv8.6, armv9.0, armv9.2 (×2). CPU-only: no OpenCL/Vulkan/QNN backends.
+- SHA-256: llama `018d9b89b74ae1e4d2c1ea0d61f9bc456590cd328d7060426ddf6ce586f659fb`,
+  shell `0725664560afd3d873bd32284bfa8a97d82a53c717154128a2b6dca68cafb256`.
+- Artifact `pocket-aurion-debug-apks` (expires 2026-12-23).
+
 ### Code changes
 
 | # | Change | Why | Evidence |
@@ -26,8 +37,8 @@ Status: **SOURCE_READY_DEVICE_UNVERIFIED** (unchanged). Nothing below has run on
 | 9 | `res/xml/voice_interaction_service.xml`: `supportsLaunchVoiceAssistFromKeyguard="false"`. | Checklist A: "Lock-screen invocation remains disabled." | `static_verify.py`. |
 | 10 | New `scripts/static_verify.py` (stdlib only). | Required by the first prompt but absent from the v0.1.0 archive. Checks manifest permissions/backup/cleartext, assistant services + processes, keyguard flag, pin consistency, catalog aliases, no network/cloud/Accessibility code, on-device ASR only, local TTS filter, untrusted screen label, assets, release flags, wrapper version. | 44/44 pass now; on the untouched v0.1.0 tree it flags 5 failures (items 2, 8, 9, and both bootstrap scripts). |
 | 11 | Gradle 8.13 wrapper (`gradlew`, `gradle/wrapper/*`). | Milestone A step 4. | `./gradlew --version` → Gradle 8.13, JVM 17.0.20.1. |
-| 12 | Unit tests: `AurionDbTest`, `ContextCompilerTest`, `AurionRepositoryTest` (Robolectric, pinned to SDK 34 via `app/src/test/resources/robolectric.properties`). | Handoff: add tests for ContextCompiler and SQLite storage. SDK 34 because Robolectric's SDK 35+ jars need a Java 21 runtime and the project uses JDK 17. | Compile cleanly. **Not yet executed** — Robolectric's runtime needs `androidx.test:monitor` from Google Maven (blocked). CI runs them. |
-| 13 | `.github/workflows/pocket-aurion-android.yml`. | Produces the APKs where Google's servers are reachable. Order follows the prompt: static verify → bootstrap → JVM tests → shell APK → llama APK → `aapt2 dump permissions` INTERNET gate → `libai-chat.so` present → upload APKs + SHA-256. | Pending first CI run. |
+| 12 | Unit tests: `AurionDbTest`, `ContextCompilerTest`, `AurionRepositoryTest` (Robolectric, pinned to SDK 34 via `app/src/test/resources/robolectric.properties`). | Handoff: add tests for ContextCompiler and SQLite storage. SDK 34 because Robolectric's SDK 35+ jars need a Java 21 runtime and the project uses JDK 17. | Could not run in the cloud session (Robolectric needs `androidx.test:monitor` from Google Maven). **Pass in CI** run 35985099307 (`:app:testDebugUnitTest`, 13 tests). |
+| 13 | `.github/workflows/pocket-aurion-android.yml`. | Produces the APKs where Google's servers are reachable. Order follows the prompt: static verify → bootstrap → JVM tests → shell APK → llama APK → `aapt2 dump permissions` INTERNET gate → `libai-chat.so` present → upload APKs + SHA-256. | Run 35985099307 on `32612df`: every step green in 12.5 min. |
 | 14 | `.gitignore`, `SHA256SUMS.txt`/`FILE_INDEX.txt` regenerated, `docs/*` added (checklist, roadmap, first prompt). | Keep vendor/build outputs/GGUFs out of git; checksums matched the old files. | — |
 
 ### Compile evidence (scratch harness, not committed)
