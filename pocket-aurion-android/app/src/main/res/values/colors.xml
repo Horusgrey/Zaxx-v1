@@ -1,0 +1,7 @@
+<resources>
+    <color name="aurion_bg">#0D0F12</color>
+    <color name="aurion_surface">#171A1F</color>
+    <color name="aurion_text">#F3F5F7</color>
+    <color name="aurion_muted">#9EA6B0</color>
+    <color name="aurion_accent">#D5E3FF</color>
+</resources>

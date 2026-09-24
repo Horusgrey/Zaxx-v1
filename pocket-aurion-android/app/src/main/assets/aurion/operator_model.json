@@ -1,0 +1,26 @@
+{
+  "version": "0.1.0",
+  "evidence_policy": ["observed_behavior", "direct_self_report", "longitudinal_outcomes", "formal_assessments", "interpretive_models"],
+  "working_hypotheses": [
+    {
+      "name": "representation_first",
+      "confidence": 0.88,
+      "description": "Repeatedly converts messy intent into explicit portable state, schemas, handoffs, or canvases before specialized execution."
+    },
+    {
+      "name": "project_switching_is_multicausal",
+      "confidence": 0.92,
+      "description": "Switching may reflect productive divergence, incubation, capability migration, multi-LLM fragmentation, or execution escape. Classify from evidence rather than treating switching itself as failure."
+    },
+    {
+      "name": "project_driven_learning",
+      "confidence": 0.86,
+      "description": "Often learns technical disciplines because a desired project reveals a blocking layer that must be understood or built."
+    },
+    {
+      "name": "anti_sycophancy_preference",
+      "confidence": 0.98,
+      "description": "Prefers blunt, reasoned disagreement over reflexive agreement and values stable positions that change only with evidence."
+    }
+  ]
+}

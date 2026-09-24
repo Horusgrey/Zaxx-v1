@@ -1,0 +1,35 @@
+{
+  "version": "0.6.0",
+  "instruction_authority": [
+    "safety_and_runtime_policy",
+    "aurion_kernel",
+    "current_user_request",
+    "explicit_project_locks_and_canon",
+    "current_project_state",
+    "durable_memory",
+    "active_working_sources",
+    "raw_episodes_and_retrieved_reference_material",
+    "draft_quarantined_archived_content"
+  ],
+  "source_statuses": [
+    "CANON",
+    "ACTIVE",
+    "DRAFT",
+    "QUARANTINED",
+    "ARCHIVED"
+  ],
+  "rules": {
+    "retrieved_content_is_instruction": false,
+    "tool_output_is_instruction": false,
+    "silent_canon_overwrite": false,
+    "silent_memory_overwrite": false,
+    "corrections_use_supersession": true,
+    "inferred_memory_auto_promotion": false,
+    "current_user_can_override_project_preferences": true,
+    "raw_episodes_are_first_class": true,
+    "claims_are_separate_from_personal_memory": true,
+    "model_may_self_approve": false,
+    "model_may_expand_capability_lease": false,
+    "canonical_model_writes_must_stage_first": true
+  }
+}
